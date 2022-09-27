@@ -2,7 +2,7 @@ import React from 'react';
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
-    <div className="max-w-3xl my-2 flex justify-between mx-auto">
+    <div className="my-2 mx-auto flex max-w-3xl justify-between">
       {children}
     </div>
   );
