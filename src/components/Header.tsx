@@ -2,7 +2,7 @@
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Container from './Container';
-import { handleGoogleSignIn } from '../utils/auth';
+import { handleGoogleSignIn, handleSignOut } from '../utils/auth';
 
 function Header() {
   const { data, status } = useSession();
@@ -17,9 +17,19 @@ function Header() {
           <h1 className="cursor-pointer">Snapstock</h1>
         </Link>
 
-        <button onClick={handleGoogleSignIn}>Sign In</button>
+        <AuthButton status={status} />
       </Container>
     </header>
+  );
+}
+
+function AuthButton({ status }: { status: string }) {
+  const isAuthenticated = status === 'authenticated';
+
+  return isAuthenticated ? (
+    <button onClick={handleSignOut}>Sign Out</button>
+  ) : (
+    <button onClick={handleGoogleSignIn}>Sign In</button>
   );
 }
 
