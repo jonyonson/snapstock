@@ -11,8 +11,7 @@ import type { AppRouter } from '../server/router';
 import type { Session } from 'next-auth';
 
 // Components
-import Header from '../components/Header';
-import Container from '../components/Container';
+import Layout from '../components/Layout';
 import AuthWrapper from '../components/AuthWrapper';
 
 // Styles
@@ -25,10 +24,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <AuthWrapper>
-        <Header />
-        <Container>
+        <Layout>
           <Component {...pageProps} />
-        </Container>
+        </Layout>
       </AuthWrapper>
     </SessionProvider>
   );
