@@ -13,7 +13,7 @@ function Header() {
   console.log({ data });
 
   return (
-    <header className="flex w-full justify-between py-4">
+    <header className="container flex w-full justify-between py-4">
       <Link href="/">
         <a>
           <Image src={SnapstockLogo} width="180" alt="" />
