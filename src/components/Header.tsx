@@ -27,9 +27,13 @@ function AuthButton({ status }: { status: string }) {
   const isAuthenticated = status === 'authenticated';
 
   return isAuthenticated ? (
-    <button onClick={handleSignOut}>Sign Out</button>
+    <button className="btn" onClick={handleSignOut}>
+      Sign Out
+    </button>
   ) : (
-    <button onClick={handleGoogleSignIn}>Sign In</button>
+    <button className="btn" onClick={handleGoogleSignIn}>
+      Sign In
+    </button>
   );
 }
 
