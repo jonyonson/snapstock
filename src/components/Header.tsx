@@ -23,7 +23,7 @@ function Header() {
       {isAuthenticated ? (
         <UserDropdown data={data} />
       ) : (
-        <button className="btn btn-primary" onClick={handleGoogleSignIn}>
+        <button className="btn btn-ghost" onClick={handleGoogleSignIn}>
           Sign In
         </button>
       )}
