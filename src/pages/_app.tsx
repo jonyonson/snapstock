@@ -4,12 +4,19 @@ import { loggerLink } from '@trpc/client/links/loggerLink';
 import { withTRPC } from '@trpc/next';
 import { SessionProvider } from 'next-auth/react';
 import superjson from 'superjson';
+
+// Types
 import type { AppType } from 'next/app';
 import type { AppRouter } from '../server/router';
 import type { Session } from 'next-auth';
-import '../styles/globals.css';
+
+// Components
 import Header from '../components/Header';
 import Container from '../components/Container';
+import AuthWrapper from '../components/AuthWrapper';
+
+// Styles
+import '../styles/globals.css';
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -17,10 +24,12 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <Header />
-      <Container>
-        <Component {...pageProps} />
-      </Container>
+      <AuthWrapper>
+        <Header />
+        <Container>
+          <Component {...pageProps} />
+        </Container>
+      </AuthWrapper>
     </SessionProvider>
   );
 };
