@@ -1,4 +1,4 @@
-const AUTHENTICATED_ROUTES = ['/dashboard'];
+const AUTHENTICATED_ROUTES = ['/dashboard', '/profile', '/settings'];
 
 const THEMES = [
   'light',

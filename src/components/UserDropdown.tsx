@@ -37,6 +37,14 @@ function UserDropdown({ data }: { data: Session | null }) {
             </div>
           </Link>
         </li>
+        <li>
+          <Link href="/settings">
+            <div className="flex justify-between">
+              <IoSettingsOutline size={20} />
+              <span>Settings</span>
+            </div>
+          </Link>
+        </li>
         <div className="divider mb-0 mt-0" />
         <li>
           <div className="flex justify-between" onClick={handleSignOut}>
