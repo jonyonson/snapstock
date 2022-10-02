@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
-import type { Suggestion } from '../types';
+import { trpc } from '../utils/trpc';
 
 import {
   Combobox,
@@ -19,27 +19,12 @@ type SearchProps = {
 
 function Search({ placeholder }: SearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`/api/search/${searchTerm}`);
-        const data = await response.json();
-        console.log({ data });
-        setSuggestions(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    if (searchTerm !== '') {
-      fetchData();
-    } else {
-      setSuggestions([]);
-    }
-  }, [searchTerm]);
+  const { data: suggestions } = trpc.useQuery(
+    ['search.suggestions', { term: searchTerm }],
+    { enabled: !!searchTerm },
+  );
 
   const handleSearchTermChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -50,7 +35,7 @@ function Search({ placeholder }: SearchProps) {
   const handleSelect = (item: string) => {
     const symbol = item.split(',')[0] as string;
     setSearchTerm('');
-    router.push(`/quote/${symbol.toUpperCase()}`);
+    router.push(`/quotes/${symbol.toUpperCase()}`);
   };
 
   return (
