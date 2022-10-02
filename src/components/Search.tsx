@@ -1,31 +1,26 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import type { Suggestion } from '../types';
+
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxPopover,
+  ComboboxList,
+  ComboboxOption,
+} from '@reach/combobox';
+
+import '@reach/combobox/styles.css';
 
 type SearchProps = {
   placeholder: string;
   className?: string;
 };
 
-type Suggestion = {
-  cik: string;
-  currency: string;
-  exchange: string;
-  exchangeName: string;
-  exchangeSuffix: string;
-  figi: string;
-  iexId: string;
-  lei: string;
-  name: string;
-  region: string;
-  sector: string;
-  securityName: string;
-  securityType: string;
-  symbol: string;
-  type: string;
-};
-
-function Search({ placeholder, className }: SearchProps) {
+function Search({ placeholder }: SearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,36 +47,50 @@ function Search({ placeholder, className }: SearchProps) {
     setSearchTerm(event.target.value);
   };
 
+  const handleSelect = (item: string) => {
+    const symbol = item.split(',')[0] as string;
+    setSearchTerm('');
+    router.push(`/quote/${symbol.toUpperCase()}`);
+  };
+
   return (
-    <div className="relative w-96">
-      {/* <div className={`form-control${className ? ` ${className}` : ''}`}> */}
-      <div className={`form-control w-full`}>
-        <input
-          type="text"
-          placeholder={placeholder}
-          className="input input-bordered w-full"
-          onChange={handleSearchTermChange}
-        />
-      </div>
-      {suggestions.length > 0 && (
-        <ul
-          tabIndex={0}
-          // className="menu menu-compact dropdown-content bg-base-100 rounded-box w-44 p-2 shadow"
-          className="menu bg-base-100 rounded-box absolute top-14 w-96 p-2 shadow"
-        >
-          {suggestions.map((suggestion) => {
-            return (
-              <li key={suggestion.symbol}>
-                <div className="flex justify-between">
-                  <span>{suggestion.symbol}</span>
-                  <span>{suggestion.name}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+    <Combobox
+      openOnFocus
+      aria-label="Search"
+      className="w-96"
+      onSelect={handleSelect}
+    >
+      <ComboboxInput
+        onChange={handleSearchTermChange}
+        placeholder={placeholder}
+        value={searchTerm}
+        className="input input-bordered w-full"
+        selectOnClick
+      />
+      {searchTerm.length > 0 && suggestions && (
+        <ComboboxPopover>
+          {suggestions.length ? (
+            <ComboboxList className="menu">
+              {suggestions.map((quote) => {
+                const value = `${quote.symbol}, ${quote.name}`;
+                return (
+                  <ComboboxOption
+                    key={value}
+                    value={value}
+                    data-testid="combobox-option"
+                  >
+                    <div className="flex">
+                      <div>{quote.name}</div>
+                      <div>{quote.symbol}</div>
+                    </div>
+                  </ComboboxOption>
+                );
+              })}
+            </ComboboxList>
+          ) : null}
+        </ComboboxPopover>
       )}
-    </div>
+    </Combobox>
   );
 }
 
