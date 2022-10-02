@@ -1,3 +1,5 @@
+const IEX_CLOUD_BASE_URL = 'https://cloud.iexapis.com/stable';
+
 const AUTHENTICATED_ROUTES = ['/dashboard', '/profile', '/settings'];
 
 const THEMES = [
@@ -32,4 +34,9 @@ const THEMES = [
   // 'winter',
 ] as const;
 
-export { AUTHENTICATED_ROUTES, THEMES };
+const IEX_CLOUD = {
+  BASE_URL: IEX_CLOUD_BASE_URL,
+  TOKEN: process.env.IEX_CLOUD_API_KEY,
+};
+
+export { AUTHENTICATED_ROUTES, THEMES, IEX_CLOUD };
