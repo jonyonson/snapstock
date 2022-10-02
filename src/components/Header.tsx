@@ -11,6 +11,7 @@ import { handleGoogleSignIn } from '../utils/auth';
 
 // Images
 import SnapstockLogo from '../assets/snapstock.svg';
+import Search from './Search';
 
 function Header() {
   const { data, status } = useSession();
@@ -18,20 +19,14 @@ function Header() {
 
   return (
     <div className="navbar bg-base-200">
-      <div className="container flex justify-between gap-32">
+      <div className="container flex justify-between">
         <Link href="/">
           <a>
             <Image src={SnapstockLogo} width="180" alt="" />
           </a>
         </Link>
 
-        <div className="form-control flex-1">
-          <input
-            type="text"
-            placeholder="Search"
-            className="input input-bordered"
-          />
-        </div>
+        <Search placeholder="Search" className="flex-1" />
 
         <div className="flex">
           <ThemeToggle className="mr-2" />
