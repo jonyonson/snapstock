@@ -65,11 +65,11 @@ model VerificationToken {
 }
 
 model WatchlistStock {
-  id      String  @id @default(cuid())
-  symbol  String  @unique
-  company String?
-  userId  String
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String @id @default(cuid())
+  symbol      String @unique
+  companyName String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // model PortfolioStock {

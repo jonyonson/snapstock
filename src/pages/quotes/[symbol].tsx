@@ -2,6 +2,8 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import Head from 'next/head';
 import { fetchQuote } from '../api/quotes/[symbol]';
 import { Company, Quote, Stats } from '../../types';
+import { trpc } from '../../utils/trpc';
+import { useQueryClient } from 'react-query';
 
 interface QuotePageProps {
   quote: Quote;
@@ -10,10 +12,77 @@ interface QuotePageProps {
 }
 
 export default function QuotePage({ quote, company, stats }: QuotePageProps) {
-  const { symbol } = company;
+  const { symbol, companyName } = company;
 
-  const follow = () => {
-    console.log('todo: add follow mutation', symbol);
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = trpc.useQuery(['watchlist.get-all']);
+
+  const { mutate: addToWatchlist } = trpc.useMutation(['watchlist.add'], {
+    // onSuccess: () => refetch(),
+    onMutate: async (newStock: any) => {
+      await queryClient.cancelQueries(['watchlist.get-all']);
+      const previousWatchlist = queryClient.getQueryData(['watchlist.get-all']);
+      queryClient.setQueryData(['watchlist.get-all'], (old: any) => [
+        ...old,
+        newStock,
+      ]);
+
+      return { previousWatchlist };
+    },
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (err, newStock, context: any) => {
+      queryClient.setQueryData(
+        ['watchlist.get-all'],
+        context.previousWatchlist,
+      );
+    },
+    // Always refetch after error or success:
+    onSettled: () => {
+      queryClient.invalidateQueries(['watchlist.get-all']);
+    },
+  });
+
+  const { mutate: removeFromWatchlist } = trpc.useMutation(
+    ['watchlist.remove'],
+    {
+      onMutate: async (removedStock: { symbol: string }) => {
+        await queryClient.cancelQueries(['watchlist.get-all']);
+        const previousWatchlist = queryClient.getQueryData([
+          'watchlist.get-all',
+        ]);
+        queryClient.setQueryData(['watchlist.get-all'], (old: any) => {
+          console.log({ old });
+          return old.filter(
+            (stock: any) => removedStock.symbol !== stock.symbol,
+          );
+        });
+
+        return { previousWatchlist };
+      },
+      // If the mutation fails, use the context returned from onMutate to roll back
+      onError: (err, removedStock, context: any) => {
+        queryClient.setQueryData(
+          ['watchlist.get-all'],
+          context.previousWatchlist,
+        );
+      },
+      // Always refetch after error or success:
+      onSettled: () => {
+        queryClient.invalidateQueries(['watchlist.get-all']);
+      },
+    },
+  );
+
+  const watchlist = data?.map((stock) => stock.symbol.toLowerCase());
+  const watchlistIncludesCurrent = watchlist?.includes(symbol.toLowerCase());
+
+  const handleClick = () => {
+    if (watchlistIncludesCurrent) {
+      removeFromWatchlist({ symbol });
+    } else {
+      addToWatchlist({ symbol, companyName });
+    }
   };
 
   return (
@@ -26,9 +95,11 @@ export default function QuotePage({ quote, company, stats }: QuotePageProps) {
 
       <div className="flex items-center">
         <h1 className="mr-2 text-3xl">{symbol}</h1>
-        <button className="btn btn-xs btn-outline" onClick={follow}>
-          Follow
-        </button>
+        {isLoading ? null : (
+          <button className="btn btn-xs btn-outline" onClick={handleClick}>
+            {watchlistIncludesCurrent ? 'Unfollow' : 'Follow'}
+          </button>
+        )}
       </div>
       <h1>{stats.companyName}</h1>
       <h2>{quote.latestPrice}</h2>
