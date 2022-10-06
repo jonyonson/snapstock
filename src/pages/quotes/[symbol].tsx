@@ -4,6 +4,7 @@ import { fetchQuote } from '../api/quotes/[symbol]';
 import { Company, Quote, Stats } from '../../types';
 import { trpc } from '../../utils/trpc';
 import { useQueryClient } from 'react-query';
+import { useSession } from 'next-auth/react';
 
 interface QuotePageProps {
   quote: Quote;
@@ -11,36 +12,38 @@ interface QuotePageProps {
   stats: Stats;
 }
 
+interface WatchlistStock {
+  companyName: string;
+  symbol: string;
+}
+
 export default function QuotePage({ quote, company, stats }: QuotePageProps) {
+  const { status } = useSession();
   const { symbol, companyName } = company;
+
+  const enabled = status !== 'unauthenticated';
+  const { data, isLoading } = trpc.useQuery(['watchlist.get-all'], { enabled });
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = trpc.useQuery(['watchlist.get-all']);
-
   const { mutate: addToWatchlist } = trpc.useMutation(['watchlist.add'], {
-    // onSuccess: () => refetch(),
-    onMutate: async (newStock: any) => {
+    onMutate: async (watchlisted: WatchlistStock) => {
       await queryClient.cancelQueries(['watchlist.get-all']);
-      const previousWatchlist = queryClient.getQueryData(['watchlist.get-all']);
+      const previousList = queryClient.getQueryData(['watchlist.get-all']);
       queryClient.setQueryData(['watchlist.get-all'], (old: any) => [
         ...old,
-        newStock,
+        watchlisted,
       ]);
 
-      return { previousWatchlist };
+      return { previousList };
     },
-    // If the mutation fails, use the context returned from onMutate to roll back
+
     onError: (err, newStock, context: any) => {
-      queryClient.setQueryData(
-        ['watchlist.get-all'],
-        context.previousWatchlist,
-      );
+      console.log({ context });
+      queryClient.setQueryData(['watchlist.get-all'], context.previousList);
     },
-    // Always refetch after error or success:
-    onSettled: () => {
-      queryClient.invalidateQueries(['watchlist.get-all']);
-    },
+
+    onSettled: () => queryClient.invalidateQueries(['watchlist.get-all']),
   });
 
   const { mutate: removeFromWatchlist } = trpc.useMutation(
@@ -74,8 +77,8 @@ export default function QuotePage({ quote, company, stats }: QuotePageProps) {
     },
   );
 
-  const watchlist = data?.map((stock) => stock.symbol.toLowerCase());
-  const watchlistIncludesCurrent = watchlist?.includes(symbol.toLowerCase());
+  const watchlist = data?.map((stock) => stock.symbol);
+  const watchlistIncludesCurrent = watchlist?.includes(symbol);
 
   const handleClick = () => {
     if (watchlistIncludesCurrent) {
