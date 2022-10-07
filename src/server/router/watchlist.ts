@@ -29,8 +29,11 @@ export const watchlistRouter = createProtectedRouter()
   .mutation('remove', {
     input: z.object({ symbol: z.string() }),
     async resolve({ ctx, input }) {
-      await ctx.prisma.watchlistStock.delete({
-        where: { symbol: input.symbol },
+      await ctx.prisma.watchlistStock.deleteMany({
+        where: {
+          symbol: input.symbol,
+          userId: ctx.session?.user?.id,
+        },
       });
     },
   });
