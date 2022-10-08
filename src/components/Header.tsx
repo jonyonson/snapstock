@@ -1,29 +1,28 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 
 // Components
 import UserDropdown from './UserDropdown';
 import ThemeToggle from './ThemeToggle';
+import Search from './Search';
+
+// Images
+import SnapstockLogo from './SnapstockLogo';
 
 // Utils
 import { handleGoogleSignIn } from '../utils/auth';
-
-// Images
-import SnapstockLogo from '../assets/snapstock.svg';
-import Search from './Search';
 
 function Header() {
   const { data, status } = useSession();
   const isAuthenticated = status === 'authenticated';
 
+  const theme = window.localStorage.getItem('snapstockTheme') || 'light';
+  console.log(theme);
   return (
-    <div className="navbar bg-base-200">
+    <div className="navbar bg-base-200 app-header">
       <div className="container flex justify-between">
         <Link href="/">
-          <a>
-            <Image src={SnapstockLogo} width="180" alt="" />
-          </a>
+          <SnapstockLogo className="logo" />
         </Link>
 
         <Search placeholder="Search" className="flex-1" />
