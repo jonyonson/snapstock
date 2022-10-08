@@ -23,6 +23,12 @@ export default function QuotePage({ quote, company, stats }: QuotePageProps) {
 
   const enabled = status !== 'unauthenticated';
   const { data, isLoading } = trpc.useQuery(['watchlist.get-all'], { enabled });
+  const { data: chartData, isLoading: chartLoading } = trpc.useQuery(
+    ['quotes.chart', { symbol, range: '5y' }],
+    { enabled },
+  );
+
+  console.log({ chartData });
 
   const queryClient = useQueryClient();
 
