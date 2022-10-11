@@ -22,13 +22,17 @@ export default function QuotePage({ quote, company, stats }: QuotePageProps) {
   const { symbol, companyName } = company;
 
   const enabled = status !== 'unauthenticated';
-  const { data, isLoading } = trpc.useQuery(['watchlist.get-all'], { enabled });
-  const { data: chartData, isLoading: chartLoading } = trpc.useQuery(
-    ['quotes.chart', { symbol, range: '5y' }],
+  const { data: watchlistData, isLoading } = trpc.useQuery(
+    ['watchlist.get-all'],
     { enabled },
   );
-
-  console.log({ chartData });
+  const { data } = trpc.useQuery(['quotes.data', { symbol }]);
+  console.log({ data });
+  // const { data: chartData, isLoading: chartLoading } = trpc.useQuery([
+  //   'quotes.chart',
+  //   { symbol, range: '5y' },
+  // ]);
+  // console.log({ chartData });
 
   const queryClient = useQueryClient();
 
@@ -83,7 +87,7 @@ export default function QuotePage({ quote, company, stats }: QuotePageProps) {
     },
   );
 
-  const watchlist = data?.map((stock) => stock.symbol);
+  const watchlist = watchlistData?.map((stock) => stock.symbol);
   const watchlistIncludesCurrent = watchlist?.includes(symbol);
 
   const handleClick = () => {
