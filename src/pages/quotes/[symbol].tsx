@@ -1,10 +1,13 @@
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import Head from 'next/head';
 import { fetchQuote } from '../api/quotes/[symbol]';
-import { Company, Quote, Stats } from '../../types';
+import { Company, FixMeLater, Quote, Stats } from '../../types';
 import { trpc } from '../../utils/trpc';
 import { useQueryClient } from 'react-query';
 import { useSession } from 'next-auth/react';
+
+// Icons
+import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
 
 interface QuotePageProps {
   quote: Quote;
@@ -12,80 +15,78 @@ interface QuotePageProps {
   stats: Stats;
 }
 
-interface WatchlistStock {
-  companyName: string;
-  symbol: string;
-}
+// interface WatchlistStock {
+//   companyName: string;
+//   symbol: string;
+// }
 
 export default function QuotePage({ quote, company, stats }: QuotePageProps) {
   const { status } = useSession();
   const { symbol, companyName } = company;
 
-  const enabled = status !== 'unauthenticated';
+  const { data } = trpc.useQuery(['quotes.data', { symbol }]);
+
   const { data: watchlistData, isLoading } = trpc.useQuery(
     ['watchlist.get-all'],
-    { enabled },
+    { enabled: status !== 'unauthenticated' },
   );
-  const { data } = trpc.useQuery(['quotes.data', { symbol }]);
   console.log({ data });
   // const { data: chartData, isLoading: chartLoading } = trpc.useQuery([
   //   'quotes.chart',
   //   { symbol, range: '5y' },
   // ]);
-  // console.log({ chartData });
 
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
-  const { mutate: addToWatchlist } = trpc.useMutation(['watchlist.add'], {
-    onMutate: async (watchlisted: WatchlistStock) => {
-      await queryClient.cancelQueries(['watchlist.get-all']);
-      const previousList = queryClient.getQueryData(['watchlist.get-all']);
-      queryClient.setQueryData(['watchlist.get-all'], (old: any) => [
-        ...old,
-        watchlisted,
-      ]);
+  const {
+    mutate: addToWatchlist,
+    // isLoading: addLoading,
+    // isSuccess: addLoaded,
+  } = trpc.useMutation(['watchlist.add'], {
+    // onMutate: async (watchlisted: WatchlistStock) => {
+    //   await qc.cancelQueries(['watchlist.get-all']);
+    //   const previousList = qc.getQueryData(['watchlist.get-all']);
+    //   qc.setQueryData(['watchlist.get-all'], (old: any) => [
+    //     ...old,
+    //     watchlisted,
+    //   ]);
 
-      return { previousList };
+    //   return { previousList };
+    // },
+
+    onError: (err, newStock, context: FixMeLater) => {
+      qc.setQueryData(['watchlist.get-all'], context.previousList);
     },
 
-    onError: (err, newStock, context: any) => {
-      console.log({ context });
-      queryClient.setQueryData(['watchlist.get-all'], context.previousList);
-    },
-
-    onSettled: () => queryClient.invalidateQueries(['watchlist.get-all']),
+    onSettled: () => qc.invalidateQueries(['watchlist.get-all']),
   });
 
-  const { mutate: removeFromWatchlist } = trpc.useMutation(
-    ['watchlist.remove'],
-    {
-      onMutate: async (removedStock: { symbol: string }) => {
-        await queryClient.cancelQueries(['watchlist.get-all']);
-        const previousWatchlist = queryClient.getQueryData([
-          'watchlist.get-all',
-        ]);
-        queryClient.setQueryData(['watchlist.get-all'], (old: any) => {
-          console.log({ old });
-          return old.filter(
-            (stock: any) => removedStock.symbol !== stock.symbol,
-          );
-        });
+  const {
+    mutate: removeFromWatchlist,
+    // isLoading: removeLoading,
+    // isSuccess: removeLoaded,
+  } = trpc.useMutation(['watchlist.remove'], {
+    // onMutate: async (removedStock: { symbol: string }) => {
+    //   await qc.cancelQueries(['watchlist.get-all']);
+    //   const previousWatchlist = qc.getQueryData(['watchlist.get-all']);
+    //   qc.setQueryData(['watchlist.get-all'], (old: any) => {
+    //     console.log({ old });
+    //     return old.filter(
+    //       (stock: any) => removedStock.symbol !== stock.symbol,
+    //     );
+    //   });
 
-        return { previousWatchlist };
-      },
-      // If the mutation fails, use the context returned from onMutate to roll back
-      onError: (err, removedStock, context: any) => {
-        queryClient.setQueryData(
-          ['watchlist.get-all'],
-          context.previousWatchlist,
-        );
-      },
-      // Always refetch after error or success:
-      onSettled: () => {
-        queryClient.invalidateQueries(['watchlist.get-all']);
-      },
+    //   return { previousWatchlist };
+    // },
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (err, removedStock, context: FixMeLater) => {
+      qc.setQueryData(['watchlist.get-all'], context.previousWatchlist);
     },
-  );
+    // Always refetch after error or success:
+    onSettled: () => {
+      qc.invalidateQueries(['watchlist.get-all']);
+    },
+  });
 
   const watchlist = watchlistData?.map((stock) => stock.symbol);
   const watchlistIncludesCurrent = watchlist?.includes(symbol);
@@ -109,8 +110,21 @@ export default function QuotePage({ quote, company, stats }: QuotePageProps) {
       <div className="flex items-center">
         <h1 className="mr-2 text-3xl">{symbol}</h1>
         {isLoading ? null : (
-          <button className="btn btn-xs btn-outline" onClick={handleClick}>
-            {watchlistIncludesCurrent ? 'Unfollow' : 'Follow'}
+          <button
+            className="btn btn-sm btn-outline gap-2"
+            onClick={handleClick}
+          >
+            {watchlistIncludesCurrent ? (
+              <>
+                <MdFavorite size={20} />
+                Unfollow
+              </>
+            ) : (
+              <>
+                <MdFavoriteBorder size={20} />
+                Follow
+              </>
+            )}
           </button>
         )}
       </div>
