@@ -1,13 +1,13 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { AUTHENTICATED_ROUTES } from '../utils/constants';
+import { AUTHENTICATED_ROUTES, AUTH_STATUS } from '../utils/constants';
 import ProtectedRoute from './ProtectedRoute';
 
 const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   const { status } = useSession();
   const router = useRouter();
 
-  if (status === 'loading') {
+  if (status === AUTH_STATUS.LOADING) {
     return null;
   }
 

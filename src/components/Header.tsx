@@ -12,12 +12,13 @@ import SnapstockLogo from './SnapstockLogo';
 // Utils
 import { handleGoogleSignIn } from '../utils/auth';
 
+// Constants
+import { AUTH_STATUS } from '../utils/constants';
+
 function Header() {
   const { data, status } = useSession();
-  const isAuthenticated = status === 'authenticated';
+  const isAuthenticated = status === AUTH_STATUS.AUTHENTICATED;
 
-  const theme = window.localStorage.getItem('snapstockTheme') || 'light';
-  console.log(theme);
   return (
     <div className="navbar bg-base-200 app-header">
       <div className="container flex justify-between">

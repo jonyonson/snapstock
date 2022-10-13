@@ -6,6 +6,9 @@ import { trpc } from '../../utils/trpc';
 import { useQueryClient } from 'react-query';
 import { useSession } from 'next-auth/react';
 
+// Constants
+import { AUTH_STATUS } from '../../utils/constants';
+
 // Icons
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
 
@@ -28,7 +31,7 @@ export default function QuotePage({ quote, company, stats }: QuotePageProps) {
 
   const { data: watchlistData, isLoading } = trpc.useQuery(
     ['watchlist.get-all'],
-    { enabled: status !== 'unauthenticated' },
+    { enabled: status !== AUTH_STATUS.UNAUTHENTICATED },
   );
   console.log({ data });
   // const { data: chartData, isLoading: chartLoading } = trpc.useQuery([
